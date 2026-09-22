@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using RimTalk.TTS.Data;
 using UnityEngine;
@@ -26,23 +24,23 @@ namespace RimTalk.TTS.Patch
                 var personaEditorType = AccessTools.TypeByName("RimTalk.UI.PersonaEditorWindow");
                 if (personaEditorType == null)
                 {
-                    Log.Warning("[RimTalk.TTS] PersonaEditorWindow type not found. Skipping patch.");
+                    TTSLog.Warning("[RimTalk.TTS] PersonaEditorWindow type not found. Skipping patch.");
                     return null;
                 }
 
                 var method = AccessTools.Method(personaEditorType, "DoWindowContents");
                 if (method == null)
                 {
-                    Log.Warning("[RimTalk.TTS] PersonaEditorWindow.DoWindowContents method not found. Skipping patch.");
+                    TTSLog.Warning("[RimTalk.TTS] PersonaEditorWindow.DoWindowContents method not found. Skipping patch.");
                     return null;
                 }
 
-                Log.Message("[RimTalk.TTS] Successfully found PersonaEditorWindow.DoWindowContents method");
+                TTSLog.Message("[RimTalk.TTS] Successfully found PersonaEditorWindow.DoWindowContents method");
                 return method;
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimTalk.TTS] Failed to find PersonaEditorWindow: {ex.Message}");
+                TTSLog.Warning($"[RimTalk.TTS] Failed to find PersonaEditorWindow: {ex.Message}");
                 return null;
             }
         }
@@ -84,7 +82,7 @@ namespace RimTalk.TTS.Patch
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimTalk.TTS] PersonaEditorPatch.Postfix error: {ex.Message}\n{ex.StackTrace}");
+                TTSLog.Error($"[RimTalk.TTS] PersonaEditorPatch.Postfix error: {ex.Message}\n{ex.StackTrace}");
             }
         }
 

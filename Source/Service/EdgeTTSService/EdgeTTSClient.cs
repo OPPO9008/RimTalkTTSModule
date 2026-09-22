@@ -47,13 +47,13 @@ namespace RimTalk.TTS.Service.EdgeTTSService
 
                     if (audioData == null || audioData.Length == 0)
                     {
-                        Log.Warning("[RimTalk.TTS] EdgeTTSClient: No audio data received");
+                        TTSLog.Warning("[RimTalk.TTS] EdgeTTSClient: No audio data received");
                         return null;
                     }
 
                     if (Prefs.DevMode)
                     {
-                        Log.Message($"[RimTalk.TTS] EdgeTTSClient: Generated {audioData.Length} bytes of audio");
+                        TTSLog.Message($"[RimTalk.TTS] EdgeTTSClient: Generated {audioData.Length} bytes of audio");
                     }
 
                     return audioData;
@@ -61,10 +61,10 @@ namespace RimTalk.TTS.Service.EdgeTTSService
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimTalk.TTS] EdgeTTSClient.GenerateSpeechAsync exception: {ex.GetType().Name}: {ex.Message}");
+                TTSLog.Error($"[RimTalk.TTS] EdgeTTSClient.GenerateSpeechAsync exception: {ex.GetType().Name}: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Log.Error($"[RimTalk.TTS] EdgeTTSClient inner exception: {ex.InnerException.Message}");
+                    TTSLog.Error($"[RimTalk.TTS] EdgeTTSClient inner exception: {ex.InnerException.Message}");
                 }
                 return null;
             }

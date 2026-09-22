@@ -80,7 +80,7 @@ namespace RimTalk.TTS.Data
             var settings = TTSConfig.Settings;
             if (settings == null) return false;
             
-            var defaultModelId = settings.GetSupplierDefaultVoiceModelId(settings.Supplier);
+            var defaultModelId = settings.GetSupplierDefaultVoiceModelId(settings.GetCurrentSupplierKey());
             return defaultModelId == VoiceModel.RULE_BASED_MODEL_ID;
         }
 
@@ -113,7 +113,7 @@ namespace RimTalk.TTS.Data
             var settings = TTSConfig.Settings;
             if (settings == null) return false;
 
-            var supplierModels = settings.GetSupplierVoiceModels(settings.Supplier);
+            var supplierModels = settings.GetSupplierVoiceModels(settings.GetCurrentSupplierKey());
             if (supplierModels == null) return false;
 
             // Use LINQ for efficient lookup instead of loop
@@ -128,7 +128,7 @@ namespace RimTalk.TTS.Data
             var settings = TTSConfig.Settings;
             if (settings == null) return VoiceModel.NONE_MODEL_ID;
 
-            var defaultModelId = settings.GetSupplierDefaultVoiceModelId(settings.Supplier) ?? VoiceModel.NONE_MODEL_ID;
+            var defaultModelId = settings.GetSupplierDefaultVoiceModelId(settings.GetCurrentSupplierKey()) ?? VoiceModel.NONE_MODEL_ID;
             
             // If default is RULE_BASED, resolve it
             if (defaultModelId == VoiceModel.RULE_BASED_MODEL_ID && pawn != null)
@@ -149,11 +149,12 @@ namespace RimTalk.TTS.Data
             var settings = TTSConfig.Settings;
             if (settings == null) return VoiceModel.NONE_MODEL_ID;
 
-            var rules = settings.GetSupplierVoiceRules(settings.Supplier);
+            string supplierKey = settings.GetCurrentSupplierKey();
+            var rules = settings.GetSupplierVoiceRules(supplierKey);
             if (rules == null || rules.Count == 0)
             {
                 // No rules defined, fallback to standard default
-                return settings.GetSupplierDefaultVoiceModelId(settings.Supplier) ?? VoiceModel.NONE_MODEL_ID;
+                return settings.GetSupplierDefaultVoiceModelId(supplierKey) ?? VoiceModel.NONE_MODEL_ID;
             }
 
             // Iterate through rules in order, return first match
@@ -166,7 +167,7 @@ namespace RimTalk.TTS.Data
             }
 
             // No matching rule, fallback to standard default
-            return settings.GetSupplierDefaultVoiceModelId(settings.Supplier) ?? VoiceModel.NONE_MODEL_ID;
+            return settings.GetSupplierDefaultVoiceModelId(supplierKey) ?? VoiceModel.NONE_MODEL_ID;
         }
 
         /// <summary>

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -148,7 +146,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                 {
                     if (Prefs.DevMode)
                     {
-                        Log.Warning($"[EdgeTTS] Attempt {retry + 1}/{MAX_RETRIES} failed: {ex.Message}");
+                        TTSLog.Warning($"[EdgeTTS] Attempt {retry + 1}/{MAX_RETRIES} failed: {ex.Message}");
                     }
                     
                     // 如果是 403 错误，尝试调整时钟偏移
@@ -158,7 +156,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                         clockSkewSeconds += 300; // 增加 5 分钟
                         if (Prefs.DevMode)
                         {
-                            Log.Message($"[EdgeTTS] Adjusting clock skew to {clockSkewSeconds} seconds");
+                            TTSLog.Message($"[EdgeTTS] Adjusting clock skew to {clockSkewSeconds} seconds");
                         }
                     }
                     
@@ -170,7 +168,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                 }
             }
             
-            Log.Error("[EdgeTTS] All attempts failed");
+            TTSLog.Error("[EdgeTTS] All attempts failed");
             return null;
         }
         
@@ -195,7 +193,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                 
                 if (Prefs.DevMode)
                 {
-                    Log.Message($"[EdgeTTS] Connecting to: {wssUrl.Substring(0, Math.Min(100, wssUrl.Length))}...");
+                    TTSLog.Message($"[EdgeTTS] Connecting to: {wssUrl.Substring(0, Math.Min(100, wssUrl.Length))}...");
                 }
                 
                 // 连接
@@ -208,7 +206,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                 
                 if (Prefs.DevMode)
                 {
-                    Log.Message("[EdgeTTS] WebSocket connected successfully");
+                    TTSLog.Message("[EdgeTTS] WebSocket connected successfully");
                 }
                 
                 // 发送配置消息
@@ -259,7 +257,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
             
             if (Prefs.DevMode)
             {
-                Log.Message("[EdgeTTS] Config message sent");
+                TTSLog.Message("[EdgeTTS] Config message sent");
             }
         }
         
@@ -284,7 +282,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
             
             if (Prefs.DevMode)
             {
-                Log.Message($"[EdgeTTS] SSML message sent, RequestId: {requestId}");
+                TTSLog.Message($"[EdgeTTS] SSML message sent, RequestId: {requestId}");
             }
         }
         
@@ -307,7 +305,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                     {
                         if (Prefs.DevMode)
                         {
-                            Log.Message($"[EdgeTTS] WebSocket closed: {result.CloseStatus} - {result.CloseStatusDescription}");
+                            TTSLog.Message($"[EdgeTTS] WebSocket closed: {result.CloseStatus} - {result.CloseStatusDescription}");
                         }
                         break;
                     }
@@ -351,7 +349,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                         {
                             if (Prefs.DevMode)
                             {
-                                Log.Message("[EdgeTTS] Received turn.end");
+                                TTSLog.Message("[EdgeTTS] Received turn.end");
                             }
                             break;
                         }
@@ -359,21 +357,21 @@ namespace RimTalk.TTS.Service.EdgeTTSService
                         // 检查错误
                         if (message.Contains("Path:response") && message.Contains("error"))
                         {
-                            Log.Error($"[EdgeTTS] Server error: {message}");
+                            TTSLog.Error($"[EdgeTTS] Server error: {message}");
                             throw new Exception($"Server error: {message}");
                         }
                     }
                 }
                 catch (OperationCanceledException)
                 {
-                    Log.Warning("[EdgeTTS] Operation cancelled (timeout)");
+                    TTSLog.Warning("[EdgeTTS] Operation cancelled (timeout)");
                     break;
                 }
             }
             
             if (!audioReceived)
             {
-                Log.Warning("[EdgeTTS] No audio data received");
+                TTSLog.Warning("[EdgeTTS] No audio data received");
                 return null;
             }
             
@@ -399,7 +397,7 @@ namespace RimTalk.TTS.Service.EdgeTTSService
             
             if (Prefs.DevMode)
             {
-                Log.Message($"[EdgeTTS] Received {audioChunks.Count} audio chunks, total {totalLength} bytes");
+                TTSLog.Message($"[EdgeTTS] Received {audioChunks.Count} audio chunks, total {totalLength} bytes");
             }
             
             return audioData;

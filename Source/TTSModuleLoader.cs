@@ -15,7 +15,7 @@ namespace RimTalk.TTS
         {
             try
             {
-                Log.Message("[RimTalk.TTS] Initializing TTS Module...");
+                TTSLog.Message("[RimTalk.TTS] Initializing TTS Module...");
                 
                 var harmony = new Harmony("jlibrary.rimtalk.tts");
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
@@ -25,11 +25,11 @@ namespace RimTalk.TTS
                 // Register application quit handler for proper cleanup
                 UnityEngine.Application.quitting += OnApplicationQuitting;
                 
-                Log.Message("[RimTalk.TTS] TTS Module initialized successfully");
+                TTSLog.Message("[RimTalk.TTS] TTS Module initialized successfully");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimTalk.TTS] Failed to initialize: {ex.Message}\n{ex.StackTrace}");
+                TTSLog.Error($"[RimTalk.TTS] Failed to initialize: {ex.Message}\n{ex.StackTrace}");
             }
         }
 
@@ -37,12 +37,12 @@ namespace RimTalk.TTS
         {
             try
             {
-                Log.Message("[RimTalk.TTS] Application quitting, performing cleanup...");
+                TTSLog.Message("[RimTalk.TTS] Application quitting, performing cleanup...");
                 TTSModule.Instance.OnGameExit();
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimTalk.TTS] Error during application quit: {ex.Message}");
+                TTSLog.Error($"[RimTalk.TTS] Error during application quit: {ex.Message}");
             }
         }
     }

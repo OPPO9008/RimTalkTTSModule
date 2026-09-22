@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Verse;
 using RimTalk.Util;
 
 namespace RimTalk.TTS.Service
@@ -25,7 +24,7 @@ namespace RimTalk.TTS.Service
                 string apiKey = request.ApiKey;
                 if (string.IsNullOrEmpty(apiKey))
                 {
-                    Log.Error("RimTalkTTS: Gemini TTS API key is not set.");
+                    TTSLog.Error("RimTalkTTS: Gemini TTS API key is not set.");
                     return null;
                 }
 
@@ -46,7 +45,7 @@ namespace RimTalk.TTS.Service
                 if (!response.IsSuccessStatusCode)
                 {
                     string errorContent = await response.Content.ReadAsStringAsync();
-                    Log.Error($"RimTalkTTS: Gemini TTS API request failed. Status: {response.StatusCode}, Error: {errorContent}");
+                    TTSLog.Error($"RimTalkTTS: Gemini TTS API request failed. Status: {response.StatusCode}, Error: {errorContent}");
                     return null;
                 }
 
@@ -58,7 +57,7 @@ namespace RimTalk.TTS.Service
                 
                 if (string.IsNullOrEmpty(audioData))
                 {
-                    Log.Error("RimTalkTTS: No audio data in Gemini TTS response.");
+                    TTSLog.Error("RimTalkTTS: No audio data in Gemini TTS response.");
                     return null;
                 }
 
@@ -72,7 +71,7 @@ namespace RimTalk.TTS.Service
             }
             catch (Exception ex)
             {
-                Log.Error($"RimTalkTTS: Error in Gemini TTS generation: {ex.Message}\n{ex.StackTrace}");
+                TTSLog.Error($"RimTalkTTS: Error in Gemini TTS generation: {ex.Message}\n{ex.StackTrace}");
                 return null;
             }
         }
@@ -140,7 +139,7 @@ namespace RimTalk.TTS.Service
             }
             catch (Exception ex)
             {
-                Log.Error($"RimTalkTTS: Failed to extract audio data: {ex.Message}");
+                TTSLog.Error($"RimTalkTTS: Failed to extract audio data: {ex.Message}");
                 return null;
             }
         }

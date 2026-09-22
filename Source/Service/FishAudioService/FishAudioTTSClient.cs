@@ -1,12 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using System.Diagnostics;
 using System.Text;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using Verse;
 using RimTalk.Util;
 
 namespace RimTalk.TTS.Service.FishAudioService;
@@ -55,17 +53,17 @@ public static class FishAudioTTSClient
                 }
             }
             
-            Log.Error("FishAudio TTS: Could not locate fish_audio_tts.py");
+            TTSLog.Error("FishAudio TTS: Could not locate fish_audio_tts.py");
             return "";
         }
         catch (Exception ex)
         {
-            Log.Error($"FishAudio TTS: Failed to get Python script path - {ex.Message}");
+            TTSLog.Error($"FishAudio TTS: Failed to get Python script path - {ex.Message}");
             return "";
         }
     }
     
-    private static Process _serverProcess;
+    private static System.Diagnostics.Process _serverProcess;
     private static HttpClient _httpClient;
     private static readonly object _lock = new object();
     private static bool _serverStarting = false;
@@ -112,7 +110,7 @@ public static class FishAudioTTSClient
         }
         catch (Exception ex)
         {
-            Log.Warning($"FishAudio TTS: Failed to probe bundled python path - {ex.Message}");
+            TTSLog.Warning($"FishAudio TTS: Failed to probe bundled python path - {ex.Message}");
         }
 
         // Fallback to system python on PATH
@@ -135,7 +133,7 @@ public static class FishAudioTTSClient
                     {
                         _pythonExecutablePath = candidate;
                     }
-                    Log.Message($"FishAudio TTS: Using bundled Python at '{candidate}'");
+                    TTSLog.Message($"FishAudio TTS: Using bundled Python at '{candidate}'");
                     return candidate;
                 }
             }
@@ -146,12 +144,12 @@ public static class FishAudioTTSClient
                 {
                     _pythonExecutablePath = candidate;
                 }
-                Log.Message($"FishAudio TTS: Using system Python executable '{candidate}'");
+                TTSLog.Message($"FishAudio TTS: Using system Python executable '{candidate}'");
                 return candidate;
             }
         }
 
-        Log.Error("FishAudio TTS: No valid Python executable found. Set RIMTALK_TTS_PYTHON to a valid path or place a python_env next to the mod.");
+        TTSLog.Error("FishAudio TTS: No valid Python executable found. Set RIMTALK_TTS_PYTHON to a valid path or place a python_env next to the mod.");
         return "";
     }
     
@@ -167,11 +165,11 @@ public static class FishAudioTTSClient
             // If check script doesn't exist, skip the check (backward compatibility)
             if (!File.Exists(checkScript))
             {
-                Log.Warning("FishAudio TTS: Dependency check script not found, skipping validation");
+                TTSLog.Warning("FishAudio TTS: Dependency check script not found, skipping validation");
                 return true;
             }
             
-            var processInfo = new ProcessStartInfo
+            var processInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = pythonExe,
                 Arguments = $"\"{checkScript}\"",
@@ -183,7 +181,7 @@ public static class FishAudioTTSClient
                 StandardErrorEncoding = Encoding.UTF8
             };
             
-            using (var process = new Process { StartInfo = processInfo })
+            using (var process = new System.Diagnostics.Process { StartInfo = processInfo })
             {
                 process.Start();
                 string output = await process.StandardOutput.ReadToEndAsync();
@@ -193,24 +191,24 @@ public static class FishAudioTTSClient
                 
                 if (!exited)
                 {
-                    Log.Warning("FishAudio TTS: Dependency check timed out");
+                    TTSLog.Warning("FishAudio TTS: Dependency check timed out");
                     process.Kill();
                     return true; // Don't block if check fails
                 }
                 
                 if (process.ExitCode != 0)
                 {
-                    Log.Error($"FishAudio TTS: Dependency check failed:\n{output}\n{error}");
+                    TTSLog.Error($"FishAudio TTS: Dependency check failed:\n{output}\n{error}");
                     return false;
                 }
                 
-                Log.Message($"FishAudio TTS: Dependencies verified:\n{output}");
+                TTSLog.Message($"FishAudio TTS: Dependencies verified:\n{output}");
                 return true;
             }
         }
         catch (Exception ex)
         {
-            Log.Warning($"FishAudio TTS: Failed to check dependencies - {ex.Message}");
+            TTSLog.Warning($"FishAudio TTS: Failed to check dependencies - {ex.Message}");
             return true; // Don't block on check failure
         }
     }
@@ -263,13 +261,13 @@ public static class FishAudioTTSClient
                     // Check if startup failed (flag cleared but no process)
                     if (!_serverStarting)
                     {
-                        Log.Warning("FishAudio TTS: Server startup failed while waiting");
+                        TTSLog.Warning("FishAudio TTS: Server startup failed while waiting");
                         return false;
                     }
                 }
             }
             
-            Log.Warning("FishAudio TTS: Server startup timeout while waiting");
+            TTSLog.Warning("FishAudio TTS: Server startup timeout while waiting");
             return false;
         }
         
@@ -278,13 +276,13 @@ public static class FishAudioTTSClient
             // Validate Python script path
             if (string.IsNullOrEmpty(PythonScriptPath))
             {
-                Log.Error("FishAudio TTS: Python script path is not initialized");
+                TTSLog.Error("FishAudio TTS: Python script path is not initialized");
                 return false;
             }
             
             if (!File.Exists(PythonScriptPath))
             {
-                Log.Error($"FishAudio TTS: Python script not found at: {PythonScriptPath}");
+                TTSLog.Error($"FishAudio TTS: Python script not found at: {PythonScriptPath}");
                 return false;
             }
 
@@ -298,16 +296,16 @@ public static class FishAudioTTSClient
             // Check Python dependencies before starting server
             if (!await CheckPythonDependenciesAsync(pythonExe))
             {
-                Log.Error("FishAudio TTS: Python dependencies check failed. Please install: pip install fish-audio-sdk");
+                TTSLog.Error("FishAudio TTS: Python dependencies check failed. Please install: pip install fish-audio-sdk");
                 return false;
             }
             
-            Log.Message("FishAudio TTS: Starting Python server...");
+            TTSLog.Message("FishAudio TTS: Starting Python server...");
             
             // Get current process ID to pass to Python server
-            int currentProcessId = Process.GetCurrentProcess().Id;
+            int currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
             
-            var processInfo = new ProcessStartInfo
+            var processInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = pythonExe,
                 Arguments = $"\"{PythonScriptPath}\" {ServerPort} {currentProcessId}",
@@ -319,7 +317,7 @@ public static class FishAudioTTSClient
                 StandardErrorEncoding = Encoding.UTF8
             };
 
-            var process = new Process { StartInfo = processInfo };
+            var process = new System.Diagnostics.Process { StartInfo = processInfo };
             
             bool started = false;
             bool hasFatalError = false;
@@ -329,7 +327,7 @@ public static class FishAudioTTSClient
             {
                 if (!string.IsNullOrEmpty(e.Data))
                 {
-                    Log.Message($"FishAudio TTS Server: {e.Data}");
+                    TTSLog.Message($"FishAudio TTS Server: {e.Data}");
                     if (e.Data.Contains("\"status\": \"ready\""))
                     {
                         started = true;
@@ -348,22 +346,22 @@ public static class FishAudioTTSClient
                     if (e.Data.Contains("ModuleNotFoundError") || e.Data.Contains("No module named"))
                     {
                         hasFatalError = true;
-                        Log.Error($"FishAudio TTS: Python dependency missing - {e.Data}");
-                        Log.Error("FishAudio TTS: Please install fishaudio package: pip install fish-audio-sdk");
+                        TTSLog.Error($"FishAudio TTS: Python dependency missing - {e.Data}");
+                        TTSLog.Error("FishAudio TTS: Please install fishaudio package: pip install fish-audio-sdk");
                     }
                     else if (e.Data.Contains("ImportError"))
                     {
                         hasFatalError = true;
-                        Log.Error($"FishAudio TTS: Python import error - {e.Data}");
+                        TTSLog.Error($"FishAudio TTS: Python import error - {e.Data}");
                     }
                     // Python server logs HTTP requests to stderr - treat as debug, not error
                     else if (e.Data.Contains("[TTS Server]") || e.Data.Contains("POST /") || e.Data.Contains("GET /"))
                     {
-                        Log.Message($"FishAudio TTS Server: {e.Data}");
+                        TTSLog.Message($"FishAudio TTS Server: {e.Data}");
                     }
                     else
                     {
-                        Log.Warning($"FishAudio TTS Server stderr: {e.Data}");
+                        TTSLog.Warning($"FishAudio TTS Server stderr: {e.Data}");
                     }
                 }
             };
@@ -382,7 +380,7 @@ public static class FishAudioTTSClient
                 // Check if process crashed during startup
                 if (process.HasExited)
                 {
-                    Log.Error($"FishAudio TTS: Python process exited during startup with code {process.ExitCode}");
+                    TTSLog.Error($"FishAudio TTS: Python process exited during startup with code {process.ExitCode}");
                     return false;
                 }
             }
@@ -391,17 +389,17 @@ public static class FishAudioTTSClient
             {
                 if (hasFatalError)
                 {
-                    Log.Error("FishAudio TTS: Server startup failed due to fatal error (see above)");
-                    Log.Error("FishAudio TTS: Complete error output:");
-                    Log.Error(errorOutput.ToString());
+                    TTSLog.Error("FishAudio TTS: Server startup failed due to fatal error (see above)");
+                    TTSLog.Error("FishAudio TTS: Complete error output:");
+                    TTSLog.Error(errorOutput.ToString());
                 }
                 else
                 {
-                    Log.Error("FishAudio TTS: Server failed to start within 15 seconds timeout");
+                    TTSLog.Error("FishAudio TTS: Server failed to start within 15 seconds timeout");
                     if (errorOutput.Length > 0)
                     {
-                        Log.Error("FishAudio TTS: Error output:");
-                        Log.Error(errorOutput.ToString());
+                        TTSLog.Error("FishAudio TTS: Error output:");
+                        TTSLog.Error(errorOutput.ToString());
                     }
                 }
                 
@@ -414,7 +412,7 @@ public static class FishAudioTTSClient
                 }
                 catch (Exception killEx)
                 {
-                    Log.Warning($"FishAudio TTS: Failed to kill non-responsive process - {killEx.Message}");
+                    TTSLog.Warning($"FishAudio TTS: Failed to kill non-responsive process - {killEx.Message}");
                 }
                 return false;
             }
@@ -432,7 +430,7 @@ public static class FishAudioTTSClient
                 catch (Exception ex)
                 {
                     // Fallback to default HttpClient if handler creation fails for any reason
-                    Log.Warning($"FishAudio TTS: Failed to create cookie-less HttpClient handler - {ex.Message}. Falling back to default HttpClient.");
+                    TTSLog.Warning($"FishAudio TTS: Failed to create cookie-less HttpClient handler - {ex.Message}. Falling back to default HttpClient.");
                     _httpClient = new HttpClient { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
                 }
             }
@@ -440,7 +438,7 @@ public static class FishAudioTTSClient
         }
         catch (Exception ex)
         {
-            Log.Error($"FishAudio TTS: Failed to start server - {ex.Message}");
+            TTSLog.Error($"FishAudio TTS: Failed to start server - {ex.Message}");
             return false;
         }
         finally
@@ -464,7 +462,7 @@ public static class FishAudioTTSClient
     {
         if (request == null || string.IsNullOrEmpty(request.Input) || string.IsNullOrEmpty(request.ApiKey))
         {
-            Log.Warning("FishAudio TTS: Text or API key is empty");
+            TTSLog.Warning("FishAudio TTS: Text or API key is empty");
             return null;
         }
         try
@@ -473,7 +471,7 @@ public static class FishAudioTTSClient
             bool serverReady = await EnsureServerRunningAsync();
             if (!serverReady)
             {
-                Log.Warning("FishAudio TTS: Server failed to start on first attempt, retrying once...");
+                TTSLog.Warning("FishAudio TTS: Server failed to start on first attempt, retrying once...");
                 
                 // Reset server state and try once more
                 lock (_lock)
@@ -497,7 +495,7 @@ public static class FishAudioTTSClient
                 serverReady = await EnsureServerRunningAsync();
                 if (!serverReady)
                 {
-                    Log.Error("FishAudio TTS: Server failed to start after retry");
+                    TTSLog.Error("FishAudio TTS: Server failed to start after retry");
                     return null;
                 }
             }
@@ -522,7 +520,7 @@ public static class FishAudioTTSClient
             // Check cancellation before sending request
             cancellationToken.ThrowIfCancellationRequested();
 
-            Logger.Debug($"FishAudio TTS: Sending request - {request.Input}");
+            TTSLog.Message($"FishAudio TTS: Sending request - {request.Input}");
             
             // Send HTTP request
             var response = await _httpClient.PostAsync(ServerUrl, content, cancellationToken);
@@ -532,7 +530,7 @@ public static class FishAudioTTSClient
             {
                 // Parse error response to extract meaningful message
                 string errorMessage = ExtractErrorMessage(responseText, response.StatusCode);
-                Log.Error($"FishAudio TTS: {errorMessage}");
+                TTSLog.Error($"FishAudio TTS: {errorMessage}");
                 return null;
             }
             
@@ -541,7 +539,7 @@ public static class FishAudioTTSClient
             
             if (result == null)
             {
-                Log.Error($"FishAudio TTS: Failed to parse response: {responseText}");
+                TTSLog.Error($"FishAudio TTS: Failed to parse response: {responseText}");
                 return null;
             }
             
@@ -554,7 +552,7 @@ public static class FishAudioTTSClient
                 }
                 catch (FormatException ex)
                 {
-                    Log.Error($"FishAudio TTS: Invalid base64 audio data - {ex.Message}");
+                    TTSLog.Error($"FishAudio TTS: Invalid base64 audio data - {ex.Message}");
                     return null;
                 }
             }
@@ -563,11 +561,11 @@ public static class FishAudioTTSClient
                 string errorMsg = result.error ?? "Unknown error";
                 if (!string.IsNullOrEmpty(result.traceback))
                 {
-                    Log.Error($"FishAudio TTS: Failed - {errorMsg}\nTraceback: {result.traceback}");
+                    TTSLog.Error($"FishAudio TTS: Failed - {errorMsg}\nTraceback: {result.traceback}");
                 }
                 else
                 {
-                    Log.Error($"FishAudio TTS: Failed - {errorMsg}");
+                    TTSLog.Error($"FishAudio TTS: Failed - {errorMsg}");
                 }
                 return null;
             }
@@ -576,13 +574,13 @@ public static class FishAudioTTSClient
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                Log.Warning("FishAudio TTS: Request timed out (30 seconds)");
+                TTSLog.Warning("FishAudio TTS: Request timed out (30 seconds)");
             }
             return null;
         }
         catch (HttpRequestException ex)
         {
-            Log.Error($"FishAudio TTS: HTTP request failed - {ex.Message}");
+            TTSLog.Error($"FishAudio TTS: HTTP request failed - {ex.Message}");
             
             // Server might have crashed, reset for next request
             lock (_lock)
@@ -596,7 +594,7 @@ public static class FishAudioTTSClient
         }
         catch (Exception ex)
         {
-            Log.Error($"FishAudio TTS: Unexpected error - {ex.Message}\n{ex.StackTrace}");
+            TTSLog.Error($"FishAudio TTS: Unexpected error - {ex.Message}\n{ex.StackTrace}");
             return null;
         }
     }
@@ -645,13 +643,13 @@ public static class FishAudioTTSClient
         {
             if (_serverProcess == null || _serverProcess.HasExited)
             {
-                Log.Message("FishAudio TTS: Server already stopped");
+                TTSLog.Message("FishAudio TTS: Server already stopped");
                 return;
             }
             
             try
             {
-                Log.Message("FishAudio TTS: Sending shutdown command to server...");
+                TTSLog.Message("FishAudio TTS: Sending shutdown command to server...");
                 
                 // Try to send shutdown command via HTTP
                 var shutdownRequest = new Dictionary<string, string>
@@ -673,18 +671,18 @@ public static class FishAudioTTSClient
 
                         if (task.IsCompleted && task.Result.IsSuccessStatusCode)
                         {
-                            Log.Message("FishAudio TTS: Server shutdown command sent successfully");
+                            TTSLog.Message("FishAudio TTS: Server shutdown command sent successfully");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"FishAudio TTS: Failed to send shutdown via cookie-less HttpClient - {ex.Message}");
+                    TTSLog.Warning($"FishAudio TTS: Failed to send shutdown via cookie-less HttpClient - {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"FishAudio TTS: Failed to send shutdown command - {ex.Message}");
+                TTSLog.Warning($"FishAudio TTS: Failed to send shutdown command - {ex.Message}");
             }
             
             // Wait a bit for graceful shutdown
@@ -692,17 +690,17 @@ public static class FishAudioTTSClient
             {
                 if (!_serverProcess.WaitForExit(3000))
                 {
-                    Log.Warning("FishAudio TTS: Server did not exit gracefully, forcing termination");
+                    TTSLog.Warning("FishAudio TTS: Server did not exit gracefully, forcing termination");
                     _serverProcess.Kill();
                 }
                 else
                 {
-                    Log.Message("FishAudio TTS: Server exited gracefully");
+                    TTSLog.Message("FishAudio TTS: Server exited gracefully");
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"FishAudio TTS: Error during server shutdown - {ex.Message}");
+                TTSLog.Warning($"FishAudio TTS: Error during server shutdown - {ex.Message}");
             }
             finally
             {

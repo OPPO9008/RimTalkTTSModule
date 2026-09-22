@@ -17,7 +17,7 @@ namespace RimTalk.TTS.Service
         {
             if (settings == null)
             {
-                Log.Warning("[RimTalk.TTS] preprocess settings is null");
+                TTSLog.Warning("[RimTalk.TTS] preprocess settings is null");
                 return null;
             }
 
@@ -40,13 +40,13 @@ namespace RimTalk.TTS.Service
                 }
                 else
                 {
-                    Log.Warning("[RimTalk.TTS] Empty response from preprocess API");
+                    TTSLog.Warning("[RimTalk.TTS] Empty response from preprocess API");
                     return null;
                 }
             }
             catch (System.Exception ex)
             {
-                Log.Error($"[RimTalk.TTS] preprocess failed - {ex.Message}");
+                TTSLog.Error($"[RimTalk.TTS] preprocess failed - {ex.Message}");
                 return null;
             }
         }
@@ -61,7 +61,7 @@ namespace RimTalk.TTS.Service
                         , @"\s+", " "
                     ).Trim();
 
-            if (TTSConfig.CurrentSupplier == TTSSettings.TTSSupplier.FishAudio)
+            if (TTSConfig.CurrentSupplier == TTSSettings.TTSSupplier.FishAudio && TTSConfig.Settings.SupplierModels[TTSSettings.TTSSupplier.FishAudio.ToString()] != "s2-pro" && TTSConfig.Settings.SupplierModels[TTSSettings.TTSSupplier.FishAudio.ToString()] != "s2.1-pro" && TTSConfig.Settings.SupplierModels[TTSSettings.TTSSupplier.FishAudio.ToString()] != "s2.1-pro-free")
             {
                 text = text.Replace("[","(").Replace("]",")");
             }

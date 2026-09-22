@@ -84,7 +84,7 @@ namespace RimTalk.TTS.Patch
             }
             catch (Exception ex)
             {
-                Log.Warning($"[RimTalk.TTS] Failed to check pawn eligibility for {pawn?.LabelShort}: {ex.Message}");
+                TTSLog.Warning($"[RimTalk.TTS] Failed to check pawn eligibility for {pawn?.LabelShort}: {ex.Message}");
                 return false;
             }
         }

@@ -27,7 +27,7 @@ class TTSRequestHandler(BaseHTTPRequestHandler):
             api_key = request_data.get("api_key")
             text = request_data.get("text")
             reference_id = request_data.get("reference_id")
-            model = request_data.get("model", "s1")
+            model = request_data.get("model", "s2-pro")
             latency = request_data.get("latency", "normal")
             speed = request_data.get("speed", 1.0)
             normalize = request_data.get("normalize", False)

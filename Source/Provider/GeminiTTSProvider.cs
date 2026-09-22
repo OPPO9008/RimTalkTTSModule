@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using RimTalk.TTS.Service;
-using Verse;
 
 namespace RimTalk.TTS.Provider
 {
@@ -17,7 +16,7 @@ namespace RimTalk.TTS.Provider
             }
             catch (Exception ex)
             {
-                Log.Error($"RimTalkTTS: GeminiTTS generation failed: {ex.Message}");
+                TTSLog.Error($"RimTalkTTS: GeminiTTS generation failed: {ex.Message}");
                 return null;
             }
         }

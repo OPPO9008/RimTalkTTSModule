@@ -35,6 +35,7 @@ namespace RimTalk.TTS.Patch
                 {
                     if (__instance == null) return;
                     if (!TTSConfig.IsEnabled) return;
+                    if (!TTSConfig.Settings.ControlButtonDisplay) return;
 
                     var overlayType = __instance.GetType();
 
@@ -73,7 +74,7 @@ namespace RimTalk.TTS.Patch
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[RimTalk.TTS] Overlay_DrawSettingsDropdown_Postfix exception: {ex}");
+                    TTSLog.Error($"[RimTalk.TTS] Overlay_DrawSettingsDropdown_Postfix exception: {ex}");
                 }
             }
         }
@@ -91,6 +92,7 @@ namespace RimTalk.TTS.Patch
             {
                 if (!TTSConfig.IsEnabled) return true;
                 if (__instance == null) return true;
+                if (!TTSConfig.Settings.ControlButtonDisplay) return true;
                 
                 Event currentEvent = Event.current;
 

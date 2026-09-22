@@ -47,6 +47,9 @@ namespace RimTalk.TTS
                 _settings = new TTSSettings();
             }
 
+            // Ensure all custom provider dictionary entries are initialized after load
+            _settings.EnsureCustomProviderDictionaries();
+
             // Apply configured provider implementation
             try
             {
@@ -55,24 +58,24 @@ namespace RimTalk.TTS
             catch { }
 
             // Output TTS API configuration
-            Log.Message("[RimTalk.TTS] ========== TTS API Configuration ==========");
-            Log.Message($"[RimTalk.TTS] Provider: {_settings.ApiProvider}");
-            Log.Message($"[RimTalk.TTS] Model: {(_settings.Model ?? "(not set)")}");
+            TTSLog.Message("[RimTalk.TTS] ========== TTS API Configuration ==========");
+            TTSLog.Message($"[RimTalk.TTS] Provider: {_settings.ApiProvider}");
+            TTSLog.Message($"[RimTalk.TTS] Model: {(_settings.Model ?? "(not set)")}");
             
             string baseUrl = _settings.ApiProvider == Data.TTSApiProvider.Custom 
                 ? (_settings.CustomBaseUrl ?? "(not set)")
                 : (_settings.ApiProvider == Data.TTSApiProvider.DeepSeek 
                     ? "https://api.deepseek.com" 
                     : "https://api.openai.com");
-            Log.Message($"[RimTalk.TTS] BaseUrl: {baseUrl}");
+            TTSLog.Message($"[RimTalk.TTS] BaseUrl: {baseUrl}");
             
             string apiKeyDisplay = string.IsNullOrEmpty(_settings.ApiKey) 
                 ? "(not set)" 
                 : $"{_settings.ApiKey.Substring(0, Math.Min(10, _settings.ApiKey.Length))}***";
-            Log.Message($"[RimTalk.TTS] ApiKey: {apiKeyDisplay}");
-            Log.Message("[RimTalk.TTS] ==========================================");
+            TTSLog.Message($"[RimTalk.TTS] ApiKey: {apiKeyDisplay}");
+            TTSLog.Message("[RimTalk.TTS] ==========================================");
 
-            Log.Message("[RimTalk.TTS] TTS Module initialized");
+            TTSLog.Message("[RimTalk.TTS] TTS Module initialized");
         }
 
         public void OnDialogueGenerated(string text, Pawn pawn, Guid dialogueId)
@@ -97,13 +100,13 @@ namespace RimTalk.TTS
         {
             if (!IsActive) return;
             
-            Log.Message("[RimTalk.TTS] Game loaded, resetting TTS state");
+            TTSLog.Message("[RimTalk.TTS] Game loaded, resetting TTS state");
             Service.TTSService.StopAll(permanentShutdown: false);
         }
 
         public void OnGameExit()
         {
-            Log.Message("[RimTalk.TTS] Game exiting, full shutdown");
+            TTSLog.Message("[RimTalk.TTS] Game exiting, full shutdown");
             
             Service.TTSService.StopAll(permanentShutdown: true);
             Service.AudioPlaybackService.FullReset(); // Then reset state
