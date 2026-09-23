@@ -90,6 +90,8 @@ namespace RimTalk.TTS.Service
                     return new Provider.EdgeTTSProvider();
                 case TTSSettings.TTSSupplier.GeminiTTS:
                     return new Provider.GeminiTTSProvider();
+                case TTSSettings.TTSSupplier.Player2TTS:
+                    return new Provider.Player2TTSProvider();
                 case TTSSettings.TTSSupplier.Custom:
                     if (settings != null)
                     {

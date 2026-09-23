@@ -20,6 +20,7 @@ namespace RimTalk.TTS.Data
             AzureTTS,
             EdgeTTS,
             GeminiTTS,
+            Player2TTS,
             Custom
         }
 
@@ -97,6 +98,8 @@ namespace RimTalk.TTS.Data
         public System.Collections.Generic.Dictionary<string, string> SupplierDefaultVoiceModelId = new System.Collections.Generic.Dictionary<string, string>();
         // Per-supplier region (for Azure TTS)
         public System.Collections.Generic.Dictionary<string, string> SupplierRegion = new System.Collections.Generic.Dictionary<string, string>();
+        // Per-supplier base URL (for Player2TTS: local app or web API)
+        public System.Collections.Generic.Dictionary<string, string> SupplierBaseUrls = new System.Collections.Generic.Dictionary<string, string>();
 
         // Advanced mode for default voice assignment
         public System.Collections.Generic.Dictionary<string, bool> SupplierAdvancedMode = new System.Collections.Generic.Dictionary<string, bool>();
@@ -138,6 +141,7 @@ namespace RimTalk.TTS.Data
             Scribe_Collections.Look(ref SupplierSpeed, "supplierSpeed", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierDefaultVoiceModelId, "supplierDefaultVoiceModelId", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierRegion, "supplierRegion", LookMode.Value, LookMode.Value);
+            Scribe_Collections.Look(ref SupplierBaseUrls, "supplierBaseUrls", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierAdvancedMode, "supplierAdvancedMode", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierVoiceRules, "supplierVoiceRules", LookMode.Value, LookMode.Deep);
             Scribe_Values.Look(ref PlayerReferenceVoiceModelId, "playerReferenceVoiceModelId", VoiceModel.NONE_MODEL_ID);
@@ -186,6 +190,12 @@ namespace RimTalk.TTS.Data
             {
                 SupplierRegion = new System.Collections.Generic.Dictionary<string, string>();
                 SupplierRegion[TTSSupplier.AzureTTS.ToString()] = "eastus";
+            }
+
+            if (SupplierBaseUrls == null)
+            {
+                SupplierBaseUrls = new System.Collections.Generic.Dictionary<string, string>();
+                SupplierBaseUrls[TTSSupplier.Player2TTS.ToString()] = TTSConstant.Player2LocalBaseUrl;
             }
 
             if (SupplierAdvancedMode == null)
@@ -377,6 +387,18 @@ namespace RimTalk.TTS.Data
         public string GetSupplierRegion(TTSSupplier supplier)
         {
             return SupplierRegion.TryGetValue(supplier.ToString(), out var value) ? value : "eastus";
+        }
+
+        public string GetSupplierBaseUrl(TTSSupplier supplier)
+        {
+            if (SupplierBaseUrls != null && SupplierBaseUrls.TryGetValue(supplier.ToString(), out var value) && !string.IsNullOrWhiteSpace(value))
+                return value;
+            return supplier == TTSSupplier.Player2TTS ? TTSConstant.Player2LocalBaseUrl : string.Empty;
+        }
+
+        public void SetSupplierBaseUrl(TTSSupplier supplier, string baseUrl)
+        {
+            SupplierBaseUrls[supplier.ToString()] = baseUrl ?? string.Empty;
         }
 
         public void SetSupplierRegion(TTSSupplier supplier, string region)

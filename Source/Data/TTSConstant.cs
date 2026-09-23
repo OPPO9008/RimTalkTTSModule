@@ -7,6 +7,10 @@ namespace RimTalk.TTS.Data
     /// </summary>
     public static class TTSConstant
     {
+        public const string Player2GameClientId = "01a0bf55-1f0c-7e9a-9e0d-09af154a74b4";
+        public const string Player2LocalBaseUrl = "http://localhost:4315/v1";
+        public const string Player2WebBaseUrl = "https://api.player2.game/v1";
+
         public static readonly string Lang = LanguageDatabase.activeLanguage.info.friendlyNameNative;
 
         public static readonly string DefaultTTSProcessingPrompt =

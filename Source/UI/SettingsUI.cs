@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 using RimWorld;
@@ -166,6 +167,11 @@ namespace RimTalk.TTS.UI
                     settings.Supplier = TTSSettings.TTSSupplier.GeminiTTS;
                     TTSService.SetProvider(settings.Supplier, settings);
                 }));
+                options.Add(new FloatMenuOption("RimTalk.Settings.TTS.TTSSupplier.Player2TTS".Translate(), delegate
+                {
+                    settings.Supplier = TTSSettings.TTSSupplier.Player2TTS;
+                    TTSService.SetProvider(settings.Supplier, settings);
+                }));
 
                 // Custom providers
                 if (settings.CustomProviders != null && settings.CustomProviders.Count > 0)
@@ -220,6 +226,12 @@ namespace RimTalk.TTS.UI
                     }
 
                     listing.Gap();
+
+                    // Player2TTS: login mode + auth buttons
+                    if (settings.Supplier == TTSSettings.TTSSupplier.Player2TTS)
+                    {
+                        DrawPlayer2AuthSection(listing, settings, supplierKey);
+                    }
                 }
 
                 // TTS Model Selection (example: FishAudio choices)
@@ -443,14 +455,15 @@ namespace RimTalk.TTS.UI
 
             listing.Gap(6f);
 
-            // Reset buttons - First row: FishAudio, CosyVoice, IndexTTS
+            // Reset buttons - First row: FishAudio v1.6/S1, FishAudio S2-pro, CosyVoice, IndexTTS
             Rect resetButtonsRect1 = listing.GetRect(30f);
             float gap = 4f;
             float btnW = (resetButtonsRect1.width - gap * 2) / 3f;
-            Rect fishRectOld = new Rect(resetButtonsRect1.x, resetButtonsRect1.y, btnW/2, resetButtonsRect1.height);
-            Rect fishRectS2 = new Rect(resetButtonsRect1.x+btnW/2, resetButtonsRect1.y, btnW/2, resetButtonsRect1.height);
-            Rect cosyRect = new Rect(resetButtonsRect1.x + btnW + gap, resetButtonsRect1.y, btnW, resetButtonsRect1.height);
-            Rect indexRect = new Rect(resetButtonsRect1.x + (btnW + gap) * 2f, resetButtonsRect1.y, btnW, resetButtonsRect1.height);
+            float btnW4 = (resetButtonsRect1.width - gap * 3f) / 4f;
+            Rect fishRectOld = new Rect(resetButtonsRect1.x, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
+            Rect fishRectS2 = new Rect(resetButtonsRect1.x + btnW4 + gap, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
+            Rect cosyRect = new Rect(resetButtonsRect1.x + (btnW4 + gap) * 2f, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
+            Rect indexRect = new Rect(resetButtonsRect1.x + (btnW4 + gap) * 3f, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
 
             if (Widgets.ButtonText(fishRectOld, "RimTalk.Settings.TTS.ResetPrompt.FishAudioOld".Translate()))
             {
@@ -520,6 +533,21 @@ namespace RimTalk.TTS.UI
             Text.Font = GameFont.Medium;
             listing.Label("RimTalk.Settings.TTS.VoiceModels".Translate());
             Text.Font = GameFont.Small;
+
+            if (settings.Supplier == TTSSettings.TTSSupplier.Player2TTS)
+            {
+                Rect p2BtnRow = listing.GetRect(30f);
+                float halfW = (p2BtnRow.width - 6f) / 2f;
+                if (Widgets.ButtonText(new Rect(p2BtnRow.x, p2BtnRow.y, halfW, 30f), "RimTalk.Settings.TTS.Player2.ViewVoices".Translate()))
+                {
+                    Find.WindowStack.Add(new Player2VoicesWindow(settings));
+                }
+                if (Widgets.ButtonText(new Rect(p2BtnRow.x + halfW + 6f, p2BtnRow.y, halfW, 30f), "RimTalk.Settings.TTS.Player2.AddChinese".Translate()))
+                {
+                    AddChineseVoices(settings);
+                }
+                listing.Gap(6f);
+            }
 
             listing.Label("RimTalk.Settings.TTS.DefaultVoiceModel".Translate());
 
@@ -1130,6 +1158,154 @@ namespace RimTalk.TTS.UI
             }
         }
 
+        private static bool player2DeviceLoginActive = false;
+        private static string player2AuthStatus = "";
+        private static bool player2AddingChinese = false;
+
+        private static void DrawPlayer2AuthSection(Listing_Standard listing, TTSSettings settings, string supplierKey)
+        {
+            listing.Label("RimTalk.Settings.TTS.Player2.LoginMode".Translate());
+
+            bool isLocal = settings.GetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS) == TTSConstant.Player2LocalBaseUrl;
+            if (listing.RadioButton("RimTalk.Settings.TTS.Player2.ModeLocal".Translate(), isLocal))
+            {
+                settings.SetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS, TTSConstant.Player2LocalBaseUrl);
+                TTSService.SetProvider(settings.Supplier, settings);
+            }
+            if (listing.RadioButton("RimTalk.Settings.TTS.Player2.ModeOAuth".Translate(), !isLocal))
+            {
+                settings.SetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS, TTSConstant.Player2WebBaseUrl);
+                TTSService.SetProvider(settings.Supplier, settings);
+            }
+
+            listing.Gap(4f);
+            listing.Label("RimTalk.Settings.TTS.Player2.BaseUrl".Translate(settings.GetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS)));
+
+            Rect authBtnRow = listing.GetRect(30f);
+            float authHalfW = (authBtnRow.width - 6f) / 2f;
+            if (isLocal)
+            {
+                if (Widgets.ButtonText(new Rect(authBtnRow.x, authBtnRow.y, authHalfW, 30f), "RimTalk.Settings.TTS.Player2.LocalLogin".Translate()))
+                {
+                    player2AuthStatus = "RimTalk.Settings.TTS.Player2.LoggingIn".Translate();
+                    Task.Run(async () =>
+                    {
+                        string key = await Service.Player2TTSClient.LoginWithLocalAppAsync();
+                        EnqueueMainThreadAction(() =>
+                        {
+                            if (!string.IsNullOrWhiteSpace(key))
+                            {
+                                settings.SetSupplierApiKey(supplierKey, key);
+                                player2AuthStatus = "RimTalk.Settings.TTS.Player2.LoginSuccess".Translate();
+                            }
+                            else
+                            {
+                                player2AuthStatus = "RimTalk.Settings.TTS.Player2.LocalLoginFailed".Translate();
+                            }
+                        });
+                    });
+                }
+            }
+            else
+            {
+                GUI.enabled = !player2DeviceLoginActive;
+                if (Widgets.ButtonText(new Rect(authBtnRow.x, authBtnRow.y, authHalfW, 30f), "RimTalk.Settings.TTS.Player2.OAuthLogin".Translate()))
+                {
+                    StartPlayer2DeviceLogin(settings, supplierKey);
+                }
+                GUI.enabled = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(player2AuthStatus))
+            {
+                listing.Gap(4f);
+                listing.Label(player2AuthStatus);
+            }
+
+            listing.Gap(6f);
+        }
+
+        private static void StartPlayer2DeviceLogin(TTSSettings settings, string supplierKey)
+        {
+            player2DeviceLoginActive = true;
+            player2AuthStatus = "RimTalk.Settings.TTS.Player2.StartingOAuth".Translate();
+
+            Task.Run(async () =>
+            {
+                var info = await Service.Player2TTSClient.StartDeviceLoginAsync(TTSConstant.Player2WebBaseUrl);
+                if (info == null)
+                {
+                    EnqueueMainThreadAction(() =>
+                    {
+                        player2DeviceLoginActive = false;
+                        player2AuthStatus = "RimTalk.Settings.TTS.Player2.OAuthStartFailed".Translate();
+                    });
+                    return;
+                }
+
+                EnqueueMainThreadAction(() => Application.OpenURL(string.IsNullOrEmpty(info.verificationUriComplete) ? info.verificationUri : info.verificationUriComplete));
+
+                int interval = info.interval > 0 ? info.interval : 5;
+                int elapsed = 0;
+                string key = null;
+                while (elapsed < info.expiresIn)
+                {
+                    await Task.Delay(interval * 1000);
+                    elapsed += interval;
+                    key = await Service.Player2TTSClient.PollDeviceTokenAsync(TTSConstant.Player2WebBaseUrl, info.deviceCode);
+                    if (!string.IsNullOrWhiteSpace(key)) break;
+                }
+
+                string obtainedKey = key;
+                EnqueueMainThreadAction(() =>
+                {
+                    player2DeviceLoginActive = false;
+                    if (!string.IsNullOrWhiteSpace(obtainedKey))
+                    {
+                        settings.SetSupplierApiKey(supplierKey, obtainedKey);
+                        player2AuthStatus = "RimTalk.Settings.TTS.Player2.LoginSuccess".Translate();
+                    }
+                    else
+                    {
+                        player2AuthStatus = "RimTalk.Settings.TTS.Player2.OAuthTimeout".Translate();
+                    }
+                });
+            });
+        }
+
+        private static void AddChineseVoices(TTSSettings settings)
+        {
+            if (player2AddingChinese) return;
+            player2AddingChinese = true;
+
+            string baseUrl = settings.GetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS);
+            Task.Run(async () =>
+            {
+                var list = await Service.Player2TTSClient.GetVoicesAsync(baseUrl);
+                EnqueueMainThreadAction(() =>
+                {
+                    player2AddingChinese = false;
+                    if (list == null)
+                    {
+                        Messages.Message("RimTalk.Settings.TTS.Player2.LoadFailed".Translate(), MessageTypeDefOf.RejectInput, false);
+                        return;
+                    }
+
+                    var models = settings.GetSupplierVoiceModels(TTSSettings.TTSSupplier.Player2TTS);
+                    int added = 0;
+                    foreach (var v in list)
+                    {
+                        if (v.language != "mandarin_chinese") continue;
+                        if (models.Any(m => m.ModelId == v.id)) continue;
+                        models.Add(new VoiceModel(v.id, $"{v.name} ({v.language})"));
+                        added++;
+                    }
+                    settings.SetSupplierVoiceModels(TTSSettings.TTSSupplier.Player2TTS, models);
+                    Messages.Message("RimTalk.Settings.TTS.Player2.ChineseAdded".Translate(added), MessageTypeDefOf.TaskCompletion, false);
+                });
+            });
+        }
+
         private static string SupplierString(TTSSettings.TTSSupplier supplier)
         {
             if (supplier == TTSSettings.TTSSupplier.Custom)
@@ -1146,6 +1322,7 @@ namespace RimTalk.TTS.UI
                 TTSSettings.TTSSupplier.AzureTTS => "RimTalk.Settings.TTS.TTSSupplier.AzureTTS".Translate(),
                 TTSSettings.TTSSupplier.EdgeTTS => "RimTalk.Settings.TTS.TTSSupplier.EdgeTTS".Translate(),
                 TTSSettings.TTSSupplier.GeminiTTS => "RimTalk.Settings.TTS.TTSSupplier.GeminiTTS".Translate(),
+                TTSSettings.TTSSupplier.Player2TTS => "RimTalk.Settings.TTS.TTSSupplier.Player2TTS".Translate(),
                 TTSSettings.TTSSupplier.None => "RimTalk.Settings.TTS.None".Translate(),
                 _ => supplier.ToString(),
             };

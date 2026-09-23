@@ -203,6 +203,26 @@ public static class AudioPlaybackService
     }
 
     /// <summary>
+    /// Play a short preview clip without affecting dialogue playback state.
+    /// Must be called from the main thread (AudioClip creation).
+    /// </summary>
+    public static async Task PlayPreviewAsync(byte[] audioData, float volume = 1f)
+    {
+        try
+        {
+            AudioClip clip = await LoadAudioClipFromData(audioData, "player2_preview");
+            if (clip != null && clip.length > 0)
+            {
+                _audioSource.PlayOneShot(clip, Mathf.Clamp01(volume));
+            }
+        }
+        catch (Exception ex)
+        {
+            TTSLog.Error($"[RimTalk.TTS] PlayPreviewAsync exception: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
     /// Load AudioClip from audio data (WAV or MP3).
     /// Any other format is rejected with a clear error log instead of failing obscurely in the MP3 decoder.
     /// </summary>

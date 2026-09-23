@@ -125,6 +125,34 @@
     <RimTalk.Settings.TTS.TTSSupplier.AzureTTS>AzureTTS (Not available now)</RimTalk.Settings.TTS.TTSSupplier.AzureTTS>
     <RimTalk.Settings.TTS.TTSSupplier.EdgeTTS>EdgeTTS (Free)</RimTalk.Settings.TTS.TTSSupplier.EdgeTTS>
     <RimTalk.Settings.TTS.TTSSupplier.GeminiTTS>GeminiTTS (Not available now)</RimTalk.Settings.TTS.TTSSupplier.GeminiTTS>
+    <RimTalk.Settings.TTS.TTSSupplier.Player2TTS>Player2TTS</RimTalk.Settings.TTS.TTSSupplier.Player2TTS>
+    <RimTalk.Settings.TTS.Player2.LoginMode>Login method:</RimTalk.Settings.TTS.Player2.LoginMode>
+    <RimTalk.Settings.TTS.Player2.ModeLocal>Local app (localhost:4315/v1)</RimTalk.Settings.TTS.Player2.ModeLocal>
+    <RimTalk.Settings.TTS.Player2.ModeOAuth>OAuth2 Flow (api.player2.game/v1)</RimTalk.Settings.TTS.Player2.ModeOAuth>
+    <RimTalk.Settings.TTS.Player2.BaseUrl>Current URL: {0}</RimTalk.Settings.TTS.Player2.BaseUrl>
+    <RimTalk.Settings.TTS.Player2.LocalLogin>Login with local app</RimTalk.Settings.TTS.Player2.LocalLogin>
+    <RimTalk.Settings.TTS.Player2.OAuthLogin>Login with OAuth2</RimTalk.Settings.TTS.Player2.OAuthLogin>
+    <RimTalk.Settings.TTS.Player2.LoggingIn>Logging in...</RimTalk.Settings.TTS.Player2.LoggingIn>
+    <RimTalk.Settings.TTS.Player2.LoginSuccess>Login successful, API key filled in</RimTalk.Settings.TTS.Player2.LoginSuccess>
+    <RimTalk.Settings.TTS.Player2.LocalLoginFailed>Local login failed, make sure the Player2 app is running and logged in</RimTalk.Settings.TTS.Player2.LocalLoginFailed>
+    <RimTalk.Settings.TTS.Player2.StartingOAuth>Starting OAuth2 flow...</RimTalk.Settings.TTS.Player2.StartingOAuth>
+    <RimTalk.Settings.TTS.Player2.OAuthStartFailed>Failed to start OAuth2 flow</RimTalk.Settings.TTS.Player2.OAuthStartFailed>
+    <RimTalk.Settings.TTS.Player2.OAuthTimeout>Authorization timed out or incomplete, please try again</RimTalk.Settings.TTS.Player2.OAuthTimeout>
+    <RimTalk.Settings.TTS.Player2.ViewVoices>View voice list</RimTalk.Settings.TTS.Player2.ViewVoices>
+    <RimTalk.Settings.TTS.Player2.AddChinese>Add all Chinese voices</RimTalk.Settings.TTS.Player2.AddChinese>
+    <RimTalk.Settings.TTS.Player2.ChineseAdded>Added {0} Chinese voices</RimTalk.Settings.TTS.Player2.ChineseAdded>
+    <RimTalk.Settings.TTS.Player2.WindowTitle>Player2 Voice List</RimTalk.Settings.TTS.Player2.WindowTitle>
+    <RimTalk.Settings.TTS.Player2.Refresh>Refresh</RimTalk.Settings.TTS.Player2.Refresh>
+    <RimTalk.Settings.TTS.Player2.Search>Search:</RimTalk.Settings.TTS.Player2.Search>
+    <RimTalk.Settings.TTS.Player2.Loading>Loading voice list...</RimTalk.Settings.TTS.Player2.Loading>
+    <RimTalk.Settings.TTS.Player2.LoadFailed>Failed to load voice list, please check login status</RimTalk.Settings.TTS.Player2.LoadFailed>
+    <RimTalk.Settings.TTS.Player2.Empty>No voices match</RimTalk.Settings.TTS.Player2.Empty>
+    <RimTalk.Settings.TTS.Player2.VoiceName>Voice Name</RimTalk.Settings.TTS.Player2.VoiceName>
+    <RimTalk.Settings.TTS.Player2.Language>Language</RimTalk.Settings.TTS.Player2.Language>
+    <RimTalk.Settings.TTS.Player2.Gender>Gender</RimTalk.Settings.TTS.Player2.Gender>
+    <RimTalk.Settings.TTS.Player2.Add>Add</RimTalk.Settings.TTS.Player2.Add>
+    <RimTalk.Settings.TTS.Player2.Added>Added</RimTalk.Settings.TTS.Player2.Added>
+    <RimTalk.Settings.TTS.Player2.Preview>Preview</RimTalk.Settings.TTS.Player2.Preview>
     <RimTalk.Settings.TTS.SpeedLabel>Speed: {0}</RimTalk.Settings.TTS.SpeedLabel>
     <RimTalk.Settings.TTS.ModelLabel.CosyVoice>TTS Model (CosyVoice): {0}</RimTalk.Settings.TTS.ModelLabel.CosyVoice>
     <RimTalk.Settings.TTS.ModelLabel.IndexTTS>TTS Model (IndexTTS): {0}</RimTalk.Settings.TTS.ModelLabel.IndexTTS>
