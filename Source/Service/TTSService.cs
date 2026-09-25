@@ -272,6 +272,9 @@ namespace RimTalk.TTS.Service
             if (settings.ApiProvider == Data.TTSApiProvider.Skip)
             {
                 TTSLog.Message($"[RimTalk.TTS] Preprocess skipped [{dialogueId.ToString().Substring(0, 8)}]: passing raw text to TTS");
+                // Still apply bracket removal if enabled (pure text cleanup, no LLM needed)
+                if (settings.RemoveBracketsInPreProcess)
+                    return InputPreProcessClient.RemoveBrackets(text);
                 return text;
             }
 

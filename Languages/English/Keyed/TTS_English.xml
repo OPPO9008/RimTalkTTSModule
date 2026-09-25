@@ -56,15 +56,7 @@
     <RimTalk.Settings.TTS.IDLabel>ID:</RimTalk.Settings.TTS.IDLabel>
     <RimTalk.Settings.TTS.AddModelButton>Add Model</RimTalk.Settings.TTS.AddModelButton>
     <RimTalk.Settings.TTS.ProcessingPromptTip>Use {language} for target language and {text} for dialogue text. External editor recommended for complex prompts.</RimTalk.Settings.TTS.ProcessingPromptTip>
-    <RimTalk.Settings.TTS.ResetPrompt>Reset Prompt</RimTalk.Settings.TTS.ResetPrompt>
-    <RimTalk.Settings.TTS.ResetPrompt.FishAudioOld>Use Default FishAudio Prompt(v1.6/S1)</RimTalk.Settings.TTS.ResetPrompt.FishAudioOld>
-    <RimTalk.Settings.TTS.ResetPrompt.FishAudioS2>Use Default FishAudio Prompt(S2-pro)</RimTalk.Settings.TTS.ResetPrompt.FishAudioS2>
-    <RimTalk.Settings.TTS.ResetPrompt.CosyVoice>Use Default CosyVoice Prompt</RimTalk.Settings.TTS.ResetPrompt.CosyVoice>
-    <RimTalk.Settings.TTS.ResetPrompt.IndexTTS>Use Default IndexTTS Prompt</RimTalk.Settings.TTS.ResetPrompt.IndexTTS>
-    <RimTalk.Settings.TTS.ResetPrompt.AzureTTS>Use Default Azure TTS Prompt</RimTalk.Settings.TTS.ResetPrompt.AzureTTS>
-    <RimTalk.Settings.TTS.ResetPrompt.EdgeTTS>Use Default Edge-TTS Prompt</RimTalk.Settings.TTS.ResetPrompt.EdgeTTS>
-    <RimTalk.Settings.TTS.ResetPrompt.GeminiTTS>Use Default Gemini TTS Prompt</RimTalk.Settings.TTS.ResetPrompt.GeminiTTS>
-    <RimTalk.Settings.TTS.ResetPrompt.Custom>Use Default Custom Provider Prompt</RimTalk.Settings.TTS.ResetPrompt.Custom>
+    <RimTalk.Settings.TTS.RestoreDefaultPrompt>Restore Default</RimTalk.Settings.TTS.RestoreDefaultPrompt>
     <RimTalk.Settings.TTS.ModelConfigurations>Voice Model Configurations</RimTalk.Settings.TTS.ModelConfigurations>
     <RimTalk.Settings.TTS.NoCustomModels>No custom voice models configured yet.\n\nAdd models in TTS Settings to see them here.</RimTalk.Settings.TTS.NoCustomModels>
 

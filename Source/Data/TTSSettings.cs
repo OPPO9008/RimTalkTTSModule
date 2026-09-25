@@ -100,6 +100,8 @@ namespace RimTalk.TTS.Data
         public System.Collections.Generic.Dictionary<string, string> SupplierRegion = new System.Collections.Generic.Dictionary<string, string>();
         // Per-supplier base URL (for Player2TTS: local app or web API)
         public System.Collections.Generic.Dictionary<string, string> SupplierBaseUrls = new System.Collections.Generic.Dictionary<string, string>();
+        // Per-supplier custom TTS processing prompt (empty = use supplier default from TTSConstant)
+        public System.Collections.Generic.Dictionary<string, string> SupplierProcessingPrompts = new System.Collections.Generic.Dictionary<string, string>();
 
         // Advanced mode for default voice assignment
         public System.Collections.Generic.Dictionary<string, bool> SupplierAdvancedMode = new System.Collections.Generic.Dictionary<string, bool>();
@@ -142,6 +144,7 @@ namespace RimTalk.TTS.Data
             Scribe_Collections.Look(ref SupplierDefaultVoiceModelId, "supplierDefaultVoiceModelId", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierRegion, "supplierRegion", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierBaseUrls, "supplierBaseUrls", LookMode.Value, LookMode.Value);
+            Scribe_Collections.Look(ref SupplierProcessingPrompts, "supplierProcessingPrompts", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierAdvancedMode, "supplierAdvancedMode", LookMode.Value, LookMode.Value);
             Scribe_Collections.Look(ref SupplierVoiceRules, "supplierVoiceRules", LookMode.Value, LookMode.Deep);
             Scribe_Values.Look(ref PlayerReferenceVoiceModelId, "playerReferenceVoiceModelId", VoiceModel.NONE_MODEL_ID);
@@ -196,6 +199,18 @@ namespace RimTalk.TTS.Data
             {
                 SupplierBaseUrls = new System.Collections.Generic.Dictionary<string, string>();
                 SupplierBaseUrls[TTSSupplier.Player2TTS.ToString()] = TTSConstant.Player2LocalBaseUrl;
+            }
+
+            if (SupplierProcessingPrompts == null)
+            {
+                SupplierProcessingPrompts = new System.Collections.Generic.Dictionary<string, string>();
+            }
+
+            // Migrate legacy global custom prompt (pre per-supplier) to FishAudio (the default supplier)
+            if (!string.IsNullOrWhiteSpace(CustomTTSProcessingPrompt) &&
+                !SupplierProcessingPrompts.ContainsKey(TTSSupplier.FishAudio.ToString()))
+            {
+                SupplierProcessingPrompts[TTSSupplier.FishAudio.ToString()] = CustomTTSProcessingPrompt;
             }
 
             if (SupplierAdvancedMode == null)
@@ -406,6 +421,16 @@ namespace RimTalk.TTS.Data
             SupplierRegion[supplier.ToString()] = region ?? "eastus";
         }
 
+        public string GetSupplierProcessingPrompt(TTSSupplier supplier)
+        {
+            return SupplierProcessingPrompts.TryGetValue(supplier.ToString(), out var value) ? value : string.Empty;
+        }
+
+        public void SetSupplierProcessingPrompt(TTSSupplier supplier, string prompt)
+        {
+            SupplierProcessingPrompts[supplier.ToString()] = prompt ?? string.Empty;
+        }
+
         public bool GetSupplierAdvancedMode(TTSSupplier supplier)
         {
             return SupplierAdvancedMode.TryGetValue(supplier.ToString(), out var value) && value;
@@ -486,6 +511,8 @@ namespace RimTalk.TTS.Data
             SupplierVoiceModels.Remove(key);
             SupplierDefaultVoiceModelId.Remove(key);
             SupplierRegion.Remove(key);
+            SupplierBaseUrls.Remove(key);
+            SupplierProcessingPrompts.Remove(key);
             SupplierAdvancedMode.Remove(key);
             SupplierVoiceRules.Remove(key);
             // If it's the current custom provider, unselect
@@ -512,6 +539,7 @@ namespace RimTalk.TTS.Data
             if (!SupplierSpeed.ContainsKey(key)) SupplierSpeed[key] = DEFAULT_SUPPLIER_SPEED;
             if (!SupplierAdvancedMode.ContainsKey(key)) SupplierAdvancedMode[key] = false;
             if (!SupplierVoiceRules.ContainsKey(key)) SupplierVoiceRules[key] = new System.Collections.Generic.List<VoiceAssignmentRule>();
+            if (!SupplierProcessingPrompts.ContainsKey(key)) SupplierProcessingPrompts[key] = "";
 
             // Initialize voice model list with the default voice so pawns can use it immediately
             if (!SupplierVoiceModels.ContainsKey(key) || SupplierVoiceModels[key] == null || SupplierVoiceModels[key].Count == 0)
@@ -564,6 +592,8 @@ namespace RimTalk.TTS.Data
             SupplierVoiceRules[key] = rules ?? new System.Collections.Generic.List<VoiceAssignmentRule>();
             PawnVoiceManager.OnRulesChanged();
         }
+        public string GetSupplierProcessingPrompt(string key) => SupplierProcessingPrompts.TryGetValue(key, out var v) ? v : string.Empty;
+        public void SetSupplierProcessingPrompt(string key, string prompt) => SupplierProcessingPrompts[key] = prompt ?? string.Empty;
 
         /// <summary>Ensure all custom providers have their dictionary entries initialized.</summary>
         public void EnsureCustomProviderDictionaries()

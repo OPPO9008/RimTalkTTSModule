@@ -51,6 +51,9 @@ namespace RimTalk.TTS.Service
             public List<string> voice_ids { get; set; }
             public float speed { get; set; }
             public string audio_format { get; set; }
+            // Required by the Player2 API. false so the server returns the audio
+            // data instead of playing it in the Player2 app itself.
+            public bool play_in_app { get; set; }
         }
 
         public class SpeakResponse
@@ -108,7 +111,8 @@ namespace RimTalk.TTS.Service
                     text = request.Input,
                     voice_ids = string.IsNullOrEmpty(request.Voice) ? null : new List<string> { request.Voice },
                     speed = speed,
-                    audio_format = "wav"
+                    audio_format = "wav",
+                    play_in_app = false
                 };
                 string json = JsonUtil.SerializeToJson(body);
                 var httpRequest = new HttpRequestMessage(HttpMethod.Post, url)

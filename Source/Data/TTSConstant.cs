@@ -209,6 +209,21 @@ namespace RimTalk.TTS.Data
             
             """;
 
+        public static readonly string DefaultTTSProcessingPrompt_Player2 =
+            """
+            You are a professional TTS text processor for Player2 TTS.
+
+            Rules:
+            1. Translate all text into {language}.
+            2. For text inside parentheses: translate only the content, keep parentheses, do not add annotations.
+            3. For text outside parentheses: translate into {language}.
+            4. Output only JSON:
+            {
+                "text": "<fully translated to {language}, all parentheses and their translated content preserved>",
+                "emotion": "<empty string>"
+            }
+            """;
+
         /// <summary>
         /// Get the current TTS processing prompt from settings or fallback to default
         /// </summary>
@@ -217,9 +232,45 @@ namespace RimTalk.TTS.Data
             if (settings == null)
                 return DefaultTTSProcessingPrompt;
 
-            return string.IsNullOrWhiteSpace(settings.CustomTTSProcessingPrompt)
-                ? DefaultTTSProcessingPrompt
-                : settings.CustomTTSProcessingPrompt;
+            string key = settings.GetCurrentSupplierKey();
+            string custom = settings.GetSupplierProcessingPrompt(key);
+            if (!string.IsNullOrWhiteSpace(custom))
+                return custom;
+
+            return GetDefaultTTSProcessingPrompt(settings.Supplier, settings.GetSupplierModel(key));
+        }
+
+        /// <summary>
+        /// Get the default processing prompt for a supplier, taking the model into account where relevant.
+        /// </summary>
+        public static string GetDefaultTTSProcessingPrompt(TTSSettings.TTSSupplier supplier, string model)
+        {
+            switch (supplier)
+            {
+                case TTSSettings.TTSSupplier.FishAudio:
+                    return IsFishAudioS2(model) ? DefaultTTSProcessingPrompt_FishAudioS2 : DefaultTTSProcessingPrompt;
+                case TTSSettings.TTSSupplier.CosyVoice:
+                    return DefaultTTSProcessingPrompt_CosyVoice;
+                case TTSSettings.TTSSupplier.IndexTTS:
+                    return DefaultTTSProcessingPrompt_IndexTTS;
+                case TTSSettings.TTSSupplier.AzureTTS:
+                    return DefaultTTSProcessingPrompt_AzureTTS;
+                case TTSSettings.TTSSupplier.EdgeTTS:
+                    return DefaultTTSProcessingPrompt_EdgeTTS;
+                case TTSSettings.TTSSupplier.GeminiTTS:
+                    return DefaultTTSProcessingPrompt_GeminiTTS;
+                case TTSSettings.TTSSupplier.Player2TTS:
+                    return DefaultTTSProcessingPrompt_Player2;
+                case TTSSettings.TTSSupplier.Custom:
+                    return DefaultTTSProcessingPrompt_Custom;
+                default:
+                    return DefaultTTSProcessingPrompt;
+            }
+        }
+
+        private static bool IsFishAudioS2(string model)
+        {
+            return model != "fishaudio-1" && model != "s1";
         }
     }
 }

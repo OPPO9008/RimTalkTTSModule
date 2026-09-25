@@ -25,7 +25,7 @@ namespace RimTalk.TTS.UI
         private static Vector2 scrollPosition = Vector2.zero;
         private static Vector2 mainScrollPosition = Vector2.zero;
         private static string processingPromptBuffer = "";
-        private static bool processingPromptInitialized = false;
+        private static string processingPromptSupplierKey = "";
         // Buffers for upload UI
         private static string uploadPathBuffer = "";
         private static string uploadNameBuffer = "";
@@ -120,11 +120,6 @@ namespace RimTalk.TTS.UI
 
             listing.Gap();
 
-            // Processing Prompt Section (similar to RimTalk main module)
-            DrawProcessingPromptSection(listing, settings);
-
-            listing.Gap();
-
             // Supplier selection (TTS backend)
             Text.Font = GameFont.Medium;
             listing.Label("RimTalk.Settings.TTS.TTSConfig".Translate());
@@ -212,6 +207,11 @@ namespace RimTalk.TTS.UI
             {
                 // Get the supplier key for dictionary access
                 string supplierKey = settings.GetCurrentSupplierKey();
+
+                // Processing prompt (per-supplier, with restore default)
+                DrawProcessingPromptSection(listing, settings);
+
+                listing.Gap();
 
                 // EdgeTTS doesn't need API key - skip it
                 // Custom providers have API key in their config, but also allow override
@@ -420,15 +420,18 @@ namespace RimTalk.TTS.UI
 
         private static void DrawProcessingPromptSection(Listing_Standard listing, TTSSettings settings)
         {
+            string supplierKey = settings.GetCurrentSupplierKey();
+
             listing.Label("RimTalk.Settings.TTS.ProcessingPromptLabel".Translate());
-            
-            // Initialize buffer if needed - show default prompt if custom is empty
-            if (!processingPromptInitialized)
+
+            // Reload the buffer when the supplier changes
+            if (processingPromptSupplierKey != supplierKey)
             {
-                processingPromptBuffer = string.IsNullOrWhiteSpace(settings.CustomTTSProcessingPrompt)
-                    ? Data.TTSConstant.DefaultTTSProcessingPrompt
-                    : settings.CustomTTSProcessingPrompt;
-                processingPromptInitialized = true;
+                processingPromptSupplierKey = supplierKey;
+                string custom = settings.GetSupplierProcessingPrompt(supplierKey);
+                processingPromptBuffer = string.IsNullOrWhiteSpace(custom)
+                    ? Data.TTSConstant.GetDefaultTTSProcessingPrompt(settings.Supplier, settings.GetSupplierModel(supplierKey))
+                    : custom;
             }
 
             // Instructions
@@ -440,91 +443,25 @@ namespace RimTalk.TTS.UI
             Text.Font = GameFont.Small;
             listing.Gap(6f);
 
-            // Text area for prompt - display buffer which contains either custom or default
+            // Text area for prompt - shows the current supplier's prompt (custom or default)
             float textAreaHeight = 120f;
             Rect textAreaRect = listing.GetRect(textAreaHeight);
-            string displayPrompt = processingPromptBuffer;
-            string newPrompt = Widgets.TextArea(textAreaRect, displayPrompt);
+            string newPrompt = Widgets.TextArea(textAreaRect, processingPromptBuffer);
 
-            // Only save if user actually modified the content
-            if (newPrompt != displayPrompt)
+            // Save to the current supplier's slot if the user edited the content
+            if (newPrompt != processingPromptBuffer)
             {
                 processingPromptBuffer = newPrompt.Replace("\\n", "\n");
-                settings.CustomTTSProcessingPrompt = processingPromptBuffer;
+                settings.SetSupplierProcessingPrompt(supplierKey, processingPromptBuffer);
             }
 
             listing.Gap(6f);
 
-            // Reset buttons - First row: FishAudio v1.6/S1, FishAudio S2-pro, CosyVoice, IndexTTS
-            Rect resetButtonsRect1 = listing.GetRect(30f);
-            float gap = 4f;
-            float btnW = (resetButtonsRect1.width - gap * 2) / 3f;
-            float btnW4 = (resetButtonsRect1.width - gap * 3f) / 4f;
-            Rect fishRectOld = new Rect(resetButtonsRect1.x, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
-            Rect fishRectS2 = new Rect(resetButtonsRect1.x + btnW4 + gap, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
-            Rect cosyRect = new Rect(resetButtonsRect1.x + (btnW4 + gap) * 2f, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
-            Rect indexRect = new Rect(resetButtonsRect1.x + (btnW4 + gap) * 3f, resetButtonsRect1.y, btnW4, resetButtonsRect1.height);
-
-            if (Widgets.ButtonText(fishRectOld, "RimTalk.Settings.TTS.ResetPrompt.FishAudioOld".Translate()))
+            // Restore default button
+            if (listing.ButtonText("RimTalk.Settings.TTS.RestoreDefaultPrompt".Translate()))
             {
-                settings.CustomTTSProcessingPrompt = "";
-                processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt;
-            }
-
-            if (Widgets.ButtonText(fishRectS2, "RimTalk.Settings.TTS.ResetPrompt.FishAudioS2".Translate()))
-            {
-                settings.CustomTTSProcessingPrompt = "";
-                processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt_FishAudioS2;
-            }
-
-            if (Widgets.ButtonText(cosyRect, "RimTalk.Settings.TTS.ResetPrompt.CosyVoice".Translate()))
-            {
-                settings.CustomTTSProcessingPrompt = Data.TTSConstant.DefaultTTSProcessingPrompt_CosyVoice;
-                processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt_CosyVoice;
-            }
-
-            if (Widgets.ButtonText(indexRect, "RimTalk.Settings.TTS.ResetPrompt.IndexTTS".Translate()))
-            {
-                settings.CustomTTSProcessingPrompt = Data.TTSConstant.DefaultTTSProcessingPrompt_IndexTTS;
-                processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt_IndexTTS;
-            }
-
-            // Reset buttons - Second row: AzureTTS, EdgeTTS, GeminiTTS
-            listing.Gap(6f);
-            Rect resetButtonsRect2 = listing.GetRect(30f);
-            Rect azureRect = new Rect(resetButtonsRect2.x, resetButtonsRect2.y, btnW, resetButtonsRect2.height);
-            Rect edgeRect = new Rect(resetButtonsRect2.x + btnW + gap, resetButtonsRect2.y, btnW, resetButtonsRect2.height);
-            Rect geminiRect = new Rect(resetButtonsRect2.x + (btnW + gap) * 2f, resetButtonsRect2.y, btnW, resetButtonsRect2.height);
-
-            if (Widgets.ButtonText(azureRect, "RimTalk.Settings.TTS.ResetPrompt.AzureTTS".Translate()))
-            {
-                settings.CustomTTSProcessingPrompt = Data.TTSConstant.DefaultTTSProcessingPrompt_AzureTTS;
-                processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt_AzureTTS;
-            }
-
-            if (Widgets.ButtonText(edgeRect, "RimTalk.Settings.TTS.ResetPrompt.EdgeTTS".Translate()))
-            {
-                settings.CustomTTSProcessingPrompt = Data.TTSConstant.DefaultTTSProcessingPrompt_EdgeTTS;
-                processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt_EdgeTTS;
-            }
-
-            if (Widgets.ButtonText(geminiRect, "RimTalk.Settings.TTS.ResetPrompt.GeminiTTS".Translate()))
-            {
-                settings.CustomTTSProcessingPrompt = Data.TTSConstant.DefaultTTSProcessingPrompt_GeminiTTS;
-                processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt_GeminiTTS;
-            }
-
-            // Reset buttons - Third row: Custom
-            if (settings.Supplier == TTSSettings.TTSSupplier.Custom)
-            {
-                listing.Gap(6f);
-                Rect resetButtonsRect3 = listing.GetRect(30f);
-                Rect customRect = new Rect(resetButtonsRect3.x, resetButtonsRect3.y, btnW, resetButtonsRect3.height);
-                if (Widgets.ButtonText(customRect, "RimTalk.Settings.TTS.ResetPrompt.Custom".Translate()))
-                {
-                    settings.CustomTTSProcessingPrompt = Data.TTSConstant.DefaultTTSProcessingPrompt_Custom;
-                    processingPromptBuffer = Data.TTSConstant.DefaultTTSProcessingPrompt_Custom;
-                }
+                settings.SetSupplierProcessingPrompt(supplierKey, "");
+                processingPromptBuffer = Data.TTSConstant.GetDefaultTTSProcessingPrompt(settings.Supplier, settings.GetSupplierModel(supplierKey));
             }
         }
 
@@ -1151,11 +1088,8 @@ namespace RimTalk.TTS.UI
 
             listing.Gap(6f);
 
-            // Remove brackets during preprocessing (not relevant for Skip)
-            if (settings.ApiProvider != TTSApiProvider.Skip)
-            {
-                listing.CheckboxLabeled("RimTalk.Settings.TTS.RemoveBracketsInPreProcess".Translate(), ref settings.RemoveBracketsInPreProcess, "RimTalk.Settings.TTS.RemoveBracketsInPreProcessTooltip".Translate());
-            }
+            // Remove brackets during preprocessing (applies in all modes, including Skip)
+            listing.CheckboxLabeled("RimTalk.Settings.TTS.RemoveBracketsInPreProcess".Translate(), ref settings.RemoveBracketsInPreProcess, "RimTalk.Settings.TTS.RemoveBracketsInPreProcessTooltip".Translate());
         }
 
         private static bool player2DeviceLoginActive = false;
@@ -1167,15 +1101,24 @@ namespace RimTalk.TTS.UI
             listing.Label("RimTalk.Settings.TTS.Player2.LoginMode".Translate());
 
             bool isLocal = settings.GetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS) == TTSConstant.Player2LocalBaseUrl;
-            if (listing.RadioButton("RimTalk.Settings.TTS.Player2.ModeLocal".Translate(), isLocal))
+            string modeDisplay = isLocal
+                ? "RimTalk.Settings.TTS.Player2.ModeLocal".Translate()
+                : "RimTalk.Settings.TTS.Player2.ModeOAuth".Translate();
+            Rect modeRect = listing.GetRect(Text.LineHeight);
+            if (Widgets.ButtonText(modeRect, modeDisplay))
             {
-                settings.SetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS, TTSConstant.Player2LocalBaseUrl);
-                TTSService.SetProvider(settings.Supplier, settings);
-            }
-            if (listing.RadioButton("RimTalk.Settings.TTS.Player2.ModeOAuth".Translate(), !isLocal))
-            {
-                settings.SetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS, TTSConstant.Player2WebBaseUrl);
-                TTSService.SetProvider(settings.Supplier, settings);
+                var options = new System.Collections.Generic.List<FloatMenuOption>();
+                options.Add(new FloatMenuOption("RimTalk.Settings.TTS.Player2.ModeLocal".Translate(), delegate
+                {
+                    settings.SetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS, TTSConstant.Player2LocalBaseUrl);
+                    TTSService.SetProvider(settings.Supplier, settings);
+                }));
+                options.Add(new FloatMenuOption("RimTalk.Settings.TTS.Player2.ModeOAuth".Translate(), delegate
+                {
+                    settings.SetSupplierBaseUrl(TTSSettings.TTSSupplier.Player2TTS, TTSConstant.Player2WebBaseUrl);
+                    TTSService.SetProvider(settings.Supplier, settings);
+                }));
+                Find.WindowStack.Add(new FloatMenu(options));
             }
 
             listing.Gap(4f);

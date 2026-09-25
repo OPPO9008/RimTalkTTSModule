@@ -325,7 +325,7 @@ namespace RimTalk.TTS.Service
         /// <summary>
         /// Remove content within various bracket types and replace with ellipsis
         /// </summary>
-        private static string RemoveBrackets(string text)
+        public static string RemoveBrackets(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
 
